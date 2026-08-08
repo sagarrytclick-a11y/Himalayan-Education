@@ -1,0 +1,358 @@
+@import "tailwindcss";
+
+:root {
+  /* Himalayan Edu — logo-derived brand system */
+  --primary: #0f2042;
+  --primary-hover: #0a1730;
+  --secondary: #1e3a8a;
+  --accent: #f1b82d;
+  --accent-deep: #d99b1e;
+  --background: #ffffff;
+  --surface: #f5f7fb;
+  --text: #0f2042;
+  --muted: #5b6b86;
+  --border: #d8dee9;
+  --success: #2e8b70;
+  --warning: #d99b1e;
+  --error: #c95c5c;
+  --footer: #0f2042;
+  --shadow-soft: 0 4px 20px rgba(15, 32, 66, 0.06);
+  --shadow-lift: 0 12px 32px rgba(15, 32, 66, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--text);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+
+  --color-primary: #0f2042;
+  --color-primary-hover: #0a1730;
+  --color-secondary: #1e3a8a;
+  --color-accent: #f1b82d;
+  --color-accent-deep: #d99b1e;
+  --color-surface: #f5f7fb;
+  --color-text: #0f2042;
+  --color-muted: #5b6b86;
+  --color-border: #d8dee9;
+  --color-success: #2e8b70;
+  --color-warning: #d99b1e;
+  --color-error: #c95c5c;
+  --color-footer: #0f2042;
+
+  --color-blue-50: #f0f4fa;
+  --color-blue-100: #dce5f3;
+  --color-blue-200: #b8c9e4;
+  --color-blue-300: #8aa5cf;
+  --color-blue-400: #5b7fb5;
+  --color-blue-500: #1e3a8a;
+  --color-blue-600: #0f2042;
+  --color-blue-700: #0c1a36;
+  --color-blue-800: #0a1730;
+  --color-blue-900: #071022;
+  --color-blue-950: #040914;
+
+  --color-brand-50: #f0f4fa;
+  --color-brand-100: #dce5f3;
+  --color-brand-200: #b8c9e4;
+  --color-brand-300: #8aa5cf;
+  --color-brand-400: #5b7fb5;
+  --color-brand-500: #1e3a8a;
+  --color-brand-600: #0f2042;
+  --color-brand-700: #0c1a36;
+  --color-brand-800: #0a1730;
+  --color-brand-900: #071022;
+  --color-brand-950: #040914;
+
+  --color-sky-500: #1e3a8a;
+  --color-amber-400: #f1b82d;
+  --color-amber-500: #f1b82d;
+  --color-amber-600: #d99b1e;
+
+  --color-navy: #0f2042;
+  --color-navy-soft: #1e3a8a;
+  --color-gold: #f1b82d;
+  --color-gold-bright: #f5c84a;
+  --color-ivory: #f5f7fb;
+  --color-ink: #0f2042;
+  --color-mist: #f5f7fb;
+  --color-teal: #0f2042;
+  --color-teal-deep: #0a1730;
+  --color-teal-soft: #f0f4fa;
+  --color-line: #d8dee9;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-body), "Open Sans", Arial, Helvetica, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), "Open Sans", Arial, Helvetica, sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-body), "Open Sans", Arial, Helvetica, sans-serif;
+}
+
+.he-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .he-container {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .he-container {
+    padding-inline: 2rem;
+  }
+}
+
+.he-section {
+  padding-block: 32px !important;
+}
+
+@media (min-width: 768px) {
+  .he-section {
+    padding-block: 36px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .he-section {
+    padding-block: 40px !important;
+  }
+}
+
+/* Homepage: gap between every section */
+.home-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+@media (min-width: 640px) {
+  .home-stack {
+    gap: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-stack {
+    gap: 50px;
+  }
+}
+
+.he-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 280ms ease,
+    box-shadow 280ms ease,
+    border-color 280ms ease,
+    background-color 280ms ease;
+}
+
+/* Default card lift — override per section when needed */
+.he-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.he-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 280ms ease,
+    background-color 280ms ease,
+    color 280ms ease,
+    box-shadow 280ms ease;
+}
+
+/* Stats: left gold bar + number pop — no icon fill flip */
+.he-stat {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 280ms ease,
+    box-shadow 280ms ease,
+    border-color 280ms ease;
+}
+
+.he-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: var(--accent);
+  transition: width 280ms ease;
+}
+
+.he-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+}
+
+.he-stat:hover::before {
+  width: 4px;
+}
+
+.he-stat:hover .he-stat-value {
+  transform: scale(1.06);
+}
+
+.he-stat-value {
+  display: inline-block;
+  transition: transform 280ms ease;
+  transform-origin: left center;
+}
+
+/* Offerings: full navy wash */
+.he-card-fill:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(15, 32, 66, 0.22);
+}
+
+.he-card-fill:hover .he-fill-title,
+.he-card-fill:hover .he-fill-link {
+  color: #ffffff;
+}
+
+.he-card-fill:hover .he-fill-desc {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.he-card-fill:hover .he-fill-icon {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.he-card-fill:hover .he-fill-badge {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--accent);
+}
+
+/* Why choose: bottom gold line grow */
+.he-card-line {
+  position: relative;
+}
+
+.he-card-line::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms ease;
+}
+
+.he-card-line:hover::after {
+  transform: scaleX(1);
+}
+
+.he-card-line:hover {
+  transform: none;
+  box-shadow: var(--shadow-soft);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+  background: #fffef8;
+}
+
+/* Blog: image only motion; soft title underline */
+.he-card-media:hover {
+  transform: none;
+  box-shadow: var(--shadow-lift);
+  border-color: var(--border);
+}
+
+.he-card-media .he-media-title {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-size: 0% 2px;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  transition: background-size 300ms ease, color 280ms ease;
+  padding-bottom: 2px;
+}
+
+.he-card-media:hover .he-media-title {
+  background-size: 100% 2px;
+  color: var(--primary);
+}
+
+/* Destinations: no card lift — image does the work */
+.he-card-photo:hover {
+  transform: none;
+  box-shadow: 0 12px 28px rgba(15, 32, 66, 0.16);
+  border-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .he-card:hover,
+  .he-stat:hover,
+  .he-card-fill:hover {
+    transform: none;
+  }
+
+  .he-stat:hover .he-stat-value {
+    transform: none;
+  }
+
+  .he-stat:hover::before {
+    width: 4px;
+  }
+
+  .he-card-line:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
