@@ -158,12 +158,13 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
         <div className="relative w-full max-w-md">
           <div className="rounded-[20px] border border-white/10 bg-[#13284f]/95 p-7 shadow-[0_16px_48px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="mb-7 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[16px] border border-white/10 bg-white/5">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-white">
                 <Image
                   src={SITE_IDENTITY.logo.primary}
                   alt={SITE_IDENTITY.name}
-                  width={36}
-                  height={36}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-full object-cover"
                 />
               </div>
               <p className="mb-1 font-body text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
@@ -238,12 +239,13 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-primary/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/5">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white">
               <Image
                 src={SITE_IDENTITY.logo.primary}
                 alt={SITE_IDENTITY.name}
-                width={28}
-                height={28}
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-cover"
               />
             </div>
             <div>

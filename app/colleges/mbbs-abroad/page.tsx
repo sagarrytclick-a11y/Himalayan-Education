@@ -17,6 +17,7 @@ import { CollegeFilterBar } from "@/components/ui/CollegeFilterBar";
 import { CollegeMediaCard } from "@/components/ui/CollegeMediaCard";
 import { Pagination } from "@/components/ui/Pagination";
 import { CollegeGridSkeleton } from "@/components/ui/Skeleton";
+import { usePopup } from "@/contexts/PopupContext";
 
 function collegeSlug(name: string) {
   return name
@@ -55,6 +56,7 @@ interface MbbsAbroadData {
 }
 
 const MbbsAbroadPage: React.FC = () => {
+  const { openPopup } = usePopup();
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -127,8 +129,9 @@ const MbbsAbroadPage: React.FC = () => {
           { label: "Home", href: "/" },
           { label: "MBBS Abroad" },
         ]}
-        image="https://i.pinimg.com/736x/63/84/b8/6384b8077a4a56208bcd07a600b16181.jpg"
+        image="https://i.pinimg.com/736x/13/d5/14/13d5143d220f85f4748b4273236b596a.jpg"
         imageAlt="MBBS universities abroad"
+        nativeImage
       >
         <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg">
           <div className="rounded-[12px] border border-white/15 bg-white/5 p-3 sm:p-4 text-center">
@@ -163,16 +166,15 @@ const MbbsAbroadPage: React.FC = () => {
               <FaArrowRight className="text-xs" />
             </Button>
           </Link>
-          <a href="tel:+919354023968">
-            <Button
-              variant="secondary"
-              size="md"
-              className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30"
-            >
-              <FaHeadset className="text-xs" />
-              Speak to an Expert
-            </Button>
-          </a>
+          <Button
+            variant="secondary"
+            size="md"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30"
+            onClick={openPopup}
+          >
+            <FaHeadset className="text-xs" />
+            Speak to an Expert
+          </Button>
         </div>
       </PageHero>
 

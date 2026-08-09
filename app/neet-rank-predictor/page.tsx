@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -29,8 +29,16 @@ interface CategoryOption {
   id: CategoryId;
   label: string;
   short: string;
-  /** Lower = reserved seats open at higher AIRs (more college options at same score) */
-  factor: number;
+  /**
+   * Approx. share of candidates in this category.
+   * Category rank ≈ AIR × poolShare (lower pool → better category rank).
+   */
+  poolShare: number;
+  /**
+   * How much farther AIR can still compete for reserved seats vs UR closing ranks.
+   * Higher = reserved seats stay open at worse AIRs.
+   */
+  seatRelief: number;
   hint: string;
 }
 
@@ -39,43 +47,49 @@ const categories: CategoryOption[] = [
     id: "general",
     label: "General (UR)",
     short: "UR",
-    factor: 1,
-    hint: "Unreserved All India / state quota cutoffs",
+    poolShare: 1,
+    seatRelief: 1,
+    hint: "Unreserved All India / state quota cutoffs — toughest closing ranks.",
   },
   {
     id: "ews",
     label: "EWS",
     short: "EWS",
-    factor: 0.92,
-    hint: "Economically Weaker Section — 10% reservation",
+    poolShare: 0.12,
+    seatRelief: 1.15,
+    hint: "Economically Weaker Section — 10% reservation; milder cutoffs than UR.",
   },
   {
     id: "obc",
     label: "OBC-NCL",
     short: "OBC",
-    factor: 0.78,
-    hint: "Other Backward Classes (Non-Creamy Layer)",
+    poolShare: 0.27,
+    seatRelief: 1.35,
+    hint: "Other Backward Classes (Non-Creamy Layer) — wider seat access than UR.",
   },
   {
     id: "sc",
     label: "SC",
     short: "SC",
-    factor: 0.55,
-    hint: "Scheduled Caste — lower closing ranks vs UR",
+    poolShare: 0.15,
+    seatRelief: 2.1,
+    hint: "Scheduled Caste — category ranks and closing AIRs are much lower than UR.",
   },
   {
     id: "st",
     label: "ST",
     short: "ST",
-    factor: 0.48,
-    hint: "Scheduled Tribe — category cutoffs usually lowest",
+    poolShare: 0.075,
+    seatRelief: 2.4,
+    hint: "Scheduled Tribe — usually the lowest closing ranks among vertical categories.",
   },
   {
     id: "pwbd",
     label: "PwBD",
     short: "PwBD",
-    factor: 0.42,
-    hint: "Persons with Benchmark Disability — horizontal reservation",
+    poolShare: 0.04,
+    seatRelief: 2.8,
+    hint: "Persons with Benchmark Disability — horizontal reservation across quotas.",
   },
 ];
 
@@ -99,7 +113,6 @@ const collegeCategories = [
     title: "Top Government Colleges",
     rankRange: "AIR 1 – 20,000",
     icon: Trophy,
-    accent: true,
     colleges: [
       "AIIMS Delhi",
       "Maulana Azad Medical College",
@@ -112,7 +125,6 @@ const collegeCategories = [
     title: "Good Government / Top Private",
     rankRange: "AIR 20,000 – 1,80,000",
     icon: Building2,
-    accent: false,
     colleges: [
       "Hamdard Institute of Medical Sciences",
       "JSS Medical College Mysore",
@@ -124,7 +136,6 @@ const collegeCategories = [
     title: "Private / Deemed Colleges",
     rankRange: "AIR 1,80,000+",
     icon: GraduationCap,
-    accent: false,
     colleges: [
       "DY Patil Medical College",
       "SRM Medical College",
@@ -134,77 +145,112 @@ const collegeCategories = [
   },
 ];
 
-function categoryOutlook(
-  entry: RankEntry,
-  cat: CategoryOption
-): { title: string; detail: string } {
-  const mid = (entry.minRank + entry.maxRank) / 2;
-  const effective = Math.max(1, Math.round(mid * cat.factor));
+interface PredictionResult {
+  entry: RankEntry;
+  airMin: number;
+  airMax: number;
+  categoryMin: number;
+  categoryMax: number;
+  effectiveAir: number;
+  outlook: { title: string; detail: string };
+}
 
-  if (effective <= 20000) {
-    return {
+function clampRank(n: number) {
+  return Math.max(1, Math.round(n));
+}
+
+function buildPrediction(score: number, cat: CategoryOption): PredictionResult | null {
+  const entry = rankData.find((r) => score >= r.minScore && score <= r.maxScore);
+  if (!entry) return null;
+
+  const airMin = entry.minRank;
+  const airMax = entry.maxRank;
+  const airMid = (airMin + airMax) / 2;
+
+  // Category rank ≈ position among same-category candidates
+  const categoryMin = clampRank(airMin * cat.poolShare);
+  const categoryMax = Math.max(categoryMin, clampRank(airMax * cat.poolShare));
+
+  // Seat competitiveness vs UR closing ranks (lower = better chance)
+  const effectiveAir = clampRank(airMid / cat.seatRelief);
+
+  let outlook: { title: string; detail: string };
+  if (effectiveAir <= 20000) {
+    outlook = {
       title: "Strong government seat chances",
-      detail: `Under ${cat.short}, this score band often competes for good government / AIIMS-track options in counselling (subject to state & AIQ cutoffs).`,
+      detail: `Under ${cat.short}, this score often competes for good government / AIIMS-track options (state + AIQ cutoffs still apply). Est. ${cat.short} rank ~${formatRankPlain(categoryMin)}–${formatRankPlain(categoryMax)}.`,
     };
-  }
-  if (effective <= 80000) {
-    return {
+  } else if (effectiveAir <= 80000) {
+    outlook = {
       title: "Solid mid-tier government / top private",
-      detail: `With ${cat.label}, expect competitive state quota and better private options than the same AIR under General.`,
+      detail: `With ${cat.label}, expect competitive state quota and stronger private options than the same AIR under General (UR).`,
     };
-  }
-  if (effective <= 350000) {
-    return {
+  } else if (effectiveAir <= 350000) {
+    outlook = {
       title: "Private / deemed focused shortlist",
-      detail: `${cat.short} reservation can still open select government seats in some states — private colleges remain the safer planning path.`,
+      detail: `${cat.short} reservation can still open select government seats in some states — private / deemed remains the safer planning path.`,
     };
-  }
-  if (effective <= 900000) {
-    return {
+  } else if (effectiveAir <= 900000) {
+    outlook = {
       title: "Limited government; plan private carefully",
-      detail: `Focus on affordable private / abroad backups. Category relief for ${cat.short} is limited at this score range.`,
+      detail: `Focus on affordable private or abroad backups. Even with ${cat.short}, Indian MBBS seats are tight at this score.`,
+    };
+  } else {
+    outlook = {
+      title: "Admission outlook is tight",
+      detail: `Consider reattempt, state-specific rules, or MBBS abroad counselling. ${cat.label} still needs a stronger score for most Indian MBBS seats.`,
     };
   }
+
   return {
-    title: "Admission outlook is tight",
-    detail: `Consider reattempt, state-specific rules, or MBBS abroad counselling. ${cat.label} cutoffs still need a higher score for most Indian MBBS seats.`,
+    entry,
+    airMin,
+    airMax,
+    categoryMin,
+    categoryMax,
+    effectiveAir,
+    outlook,
   };
+}
+
+function formatRankPlain(rank: number) {
+  if (rank >= 100000) return `${(rank / 100000).toFixed(1)}L`;
+  if (rank >= 1000) return `${(rank / 1000).toFixed(1)}K`;
+  return String(rank);
+}
+
+function formatRank(rank: number) {
+  if (rank >= 10000000) return `${(rank / 10000000).toFixed(1)} Cr`;
+  if (rank >= 100000) return `${(rank / 100000).toFixed(1)} L`;
+  if (rank >= 1000) return `${(rank / 1000).toFixed(1)}K`;
+  return rank.toString();
 }
 
 const NeetRankPredictorPage: React.FC = () => {
   const [score, setScore] = useState("");
   const [categoryId, setCategoryId] = useState<CategoryId>("general");
-  const [prediction, setPrediction] = useState<RankEntry | null>(null);
-  const [showPrediction, setShowPrediction] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const category = categories.find((c) => c.id === categoryId) || categories[0];
+
+  const prediction = useMemo(() => {
+    if (!submitted) return null;
+    const numScore = parseInt(score, 10);
+    if (isNaN(numScore) || numScore < 0 || numScore > 720) return null;
+    return buildPrediction(numScore, category);
+  }, [submitted, score, category]);
 
   const handlePredict = () => {
     const numScore = parseInt(score, 10);
     if (isNaN(numScore) || numScore < 0 || numScore > 720) {
       setError("Enter a valid score between 0 and 720.");
-      setShowPrediction(false);
-      setPrediction(null);
+      setSubmitted(false);
       return;
     }
     setError("");
-    const matched = rankData.find(
-      (r) => numScore >= r.minScore && numScore <= r.maxScore
-    );
-    setPrediction(matched || null);
-    setShowPrediction(true);
+    setSubmitted(true);
   };
-
-  const formatRank = (rank: number) => {
-    if (rank >= 10000000) return `${(rank / 10000000).toFixed(1)} Cr`;
-    if (rank >= 100000) return `${(rank / 100000).toFixed(1)} L`;
-    if (rank >= 1000) return `${(rank / 1000).toFixed(1)}K`;
-    return rank.toString();
-  };
-
-  const outlook =
-    showPrediction && prediction ? categoryOutlook(prediction, category) : null;
 
   return (
     <div className="bg-background min-h-screen">
@@ -218,7 +264,7 @@ const NeetRankPredictorPage: React.FC = () => {
             <span className="text-secondary">NEET rank</span>
           </>
         }
-        description="Estimate your All India Rank from your NEET UG score and category. Approximate only — actual ranks and cutoffs vary by year, paper, and counselling round."
+        description="Estimate All India Rank from your NEET UG score, plus a category-wise rank and seat outlook. Approximate only — actual ranks and cutoffs vary by year, paper, and counselling round."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "NEET Rank Predictor" },
@@ -237,7 +283,7 @@ const NeetRankPredictorPage: React.FC = () => {
                   Enter score & category
                 </h2>
                 <p className="mt-1 font-body text-sm text-muted">
-                  AIR from score, plus category-based admission outlook.
+                  AIR from score + category rank for counselling context.
                 </p>
               </div>
             </div>
@@ -255,7 +301,7 @@ const NeetRankPredictorPage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setCategoryId(c.id);
-                        setShowPrediction(false);
+                        // Keep result visible — prediction recomputes via useMemo
                       }}
                       className={`rounded-[12px] border px-3 py-2.5 text-left transition-colors ${
                         active
@@ -290,7 +336,7 @@ const NeetRankPredictorPage: React.FC = () => {
                 value={score}
                 onChange={(e) => {
                   setScore(e.target.value);
-                  setShowPrediction(false);
+                  setSubmitted(false);
                   setError("");
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handlePredict()}
@@ -307,50 +353,74 @@ const NeetRankPredictorPage: React.FC = () => {
               <p className="mt-3 font-body text-sm text-error">{error}</p>
             )}
 
-            {showPrediction && prediction && outlook && (
+            {prediction && (
               <div className="mt-7 overflow-hidden rounded-[16px] border border-accent/30 bg-accent/10">
-                <div className="grid sm:grid-cols-[1fr_auto] gap-4 p-5 sm:p-6">
-                  <div>
-                    <p className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-accent-deep mb-2">
+                <div className="grid sm:grid-cols-2 gap-3 p-5 sm:p-6">
+                  <div className="rounded-[12px] border border-border bg-white p-4">
+                    <p className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-muted mb-2">
                       Estimated All India Rank
                     </p>
-                    <p className="font-display text-3xl sm:text-4xl font-extrabold text-primary leading-none">
-                      {formatRank(prediction.minRank)}
+                    <p className="font-display text-2xl sm:text-3xl font-extrabold text-primary leading-none">
+                      {formatRank(prediction.airMin)}
                       <span className="mx-1.5 text-muted font-bold">–</span>
-                      {formatRank(prediction.maxRank)}
+                      {formatRank(prediction.airMax)}
                     </p>
-                    <p className="mt-3 font-body text-sm text-muted leading-relaxed">
-                      {prediction.label}
+                    <p className="mt-2 font-body text-xs text-muted">
+                      Same for every category at this score
                     </p>
                   </div>
-                  <div className="flex sm:flex-col items-center justify-center gap-2 rounded-[12px] border border-border bg-white px-5 py-3 self-start">
+
+                  <div className="rounded-[12px] border border-accent/40 bg-accent/10 p-4">
+                    <p className="font-body text-[11px] font-bold uppercase tracking-[0.14em] text-accent-deep mb-2">
+                      Est. {category.short} category rank
+                    </p>
+                    <p className="font-display text-2xl sm:text-3xl font-extrabold text-accent-deep leading-none">
+                      {formatRank(prediction.categoryMin)}
+                      <span className="mx-1.5 text-muted font-bold">–</span>
+                      {formatRank(prediction.categoryMax)}
+                    </p>
+                    <p className="mt-2 font-body text-xs text-muted">
+                      Changes with {category.label}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-accent/20 bg-white/50 px-5 py-3">
+                  <div>
                     <p className="font-body text-xs font-semibold text-muted">Your score</p>
-                    <p className="font-display text-2xl font-extrabold text-accent-deep">
+                    <p className="font-display text-xl font-extrabold text-primary">
                       {score}
                       <span className="text-sm font-bold text-muted">/720</span>
                     </p>
-                    <p className="font-body text-[11px] font-bold text-primary">
-                      {category.short}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-body text-xs font-semibold text-muted">Category</p>
+                    <p className="font-display text-lg font-extrabold text-primary">
+                      {category.label}
                     </p>
                   </div>
                 </div>
 
                 <div className="border-t border-accent/20 bg-white/70 px-5 py-4">
                   <p className="font-body text-[11px] font-bold uppercase tracking-[0.12em] text-accent-deep">
-                    {category.label} outlook
+                    {category.label} seat outlook
                   </p>
                   <p className="mt-1.5 font-display text-base font-extrabold text-primary">
-                    {outlook.title}
+                    {prediction.outlook.title}
                   </p>
                   <p className="mt-1 font-body text-sm text-muted leading-relaxed">
-                    {outlook.detail}
+                    {prediction.outlook.detail}
+                  </p>
+                  <p className="mt-2 font-body text-xs text-muted">
+                    {prediction.entry.label}
                   </p>
                 </div>
 
                 <div className="flex items-start gap-2 border-t border-accent/20 bg-white/50 px-5 py-3">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-deep" />
                   <p className="font-body text-xs text-muted leading-relaxed">
-                    AIR is score-based. Category changes counselling cutoffs, not the AIR formula. Use this as a starting point — not a guarantee.
+                    AIR depends on marks. Category rank and seat chances change with reservation.
+                    Switch category above to compare — numbers update instantly. Approximate only.
                   </p>
                 </div>
               </div>
@@ -379,17 +449,26 @@ const NeetRankPredictorPage: React.FC = () => {
                 <thead>
                   <tr className="bg-primary text-white">
                     <th className="px-5 py-3.5 text-left font-semibold">Score</th>
-                    <th className="px-5 py-3.5 text-left font-semibold">Est. rank</th>
+                    <th className="px-5 py-3.5 text-left font-semibold">Est. AIR</th>
+                    <th className="px-5 py-3.5 text-left font-semibold">
+                      Est. {category.short} rank
+                    </th>
                     <th className="px-5 py-3.5 text-left font-semibold">What it means</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rankData.map((row, i) => {
+                    const numScore = parseInt(score, 10);
                     const isActive =
-                      showPrediction &&
-                      prediction &&
-                      parseInt(score, 10) >= row.minScore &&
-                      parseInt(score, 10) <= row.maxScore;
+                      submitted &&
+                      !isNaN(numScore) &&
+                      numScore >= row.minScore &&
+                      numScore <= row.maxScore;
+                    const catMin = clampRank(row.minRank * category.poolShare);
+                    const catMax = Math.max(
+                      catMin,
+                      clampRank(row.maxRank * category.poolShare)
+                    );
                     return (
                       <tr
                         key={`${row.minScore}-${row.maxScore}`}
@@ -406,8 +485,11 @@ const NeetRankPredictorPage: React.FC = () => {
                             ? row.minScore
                             : `${row.minScore} – ${row.maxScore}`}
                         </td>
-                        <td className="px-5 py-3 font-semibold text-accent-deep whitespace-nowrap">
+                        <td className="px-5 py-3 font-semibold text-primary whitespace-nowrap">
                           {formatRank(row.minRank)} – {formatRank(row.maxRank)}
+                        </td>
+                        <td className="px-5 py-3 font-semibold text-accent-deep whitespace-nowrap">
+                          {formatRank(catMin)} – {formatRank(catMax)}
                         </td>
                         <td className="px-5 py-3 text-muted text-xs sm:text-sm">
                           {row.label}
@@ -420,7 +502,8 @@ const NeetRankPredictorPage: React.FC = () => {
             </div>
           </div>
           <p className="mt-4 text-center font-body text-xs text-muted">
-            Ranges are approximate. Actual AIR depends on paper difficulty and total candidates. Category cutoffs differ in counselling.
+            Table updates for <strong className="text-text">{category.label}</strong>. AIR stays
+            score-based; category rank column changes with reservation pool size.
           </p>
         </div>
       </section>

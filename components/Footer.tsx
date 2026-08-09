@@ -134,7 +134,12 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           {/* Brand + social — always left */}
           <div className="sm:col-span-2 lg:col-span-3 order-1 text-left">
-            <Logo light showText className="h-12 w-12 object-contain brightness-110" />
+            <Logo
+              light
+              showText
+              className="h-12 w-12 rounded-full object-cover"
+              imageWrapperClassName="inline-flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white"
+            />
             <p className="mt-5 text-sm leading-relaxed text-white/70 max-w-sm">
               {SITE_IDENTITY.name} supports students and parents with practical counselling
               for MBBS in India & abroad, MD/MS pathways, and NEET guidance.
