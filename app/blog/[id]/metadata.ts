@@ -1,4 +1,5 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
+import { SITE_IDENTITY } from "@/app/config/site_identity";
 
 interface BlogItem {
   id: number;
@@ -14,9 +15,9 @@ interface BlogItem {
 
 export function generateBlogMetadata(blog: BlogItem): Metadata {
   return {
-    title: `${blog.title} | FM Education Blog`,
+    title: blog.title,
     description: blog.description,
-    keywords: blog.tags.join(', '),
+    keywords: blog.tags,
     authors: [{ name: blog.author }],
     openGraph: {
       title: blog.title,
@@ -29,19 +30,19 @@ export function generateBlogMetadata(blog: BlogItem): Metadata {
           alt: blog.title,
         },
       ],
-      type: 'article',
+      type: "article",
       publishedTime: blog.date,
       authors: [blog.author],
       tags: blog.tags,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: blog.title,
       description: blog.description,
       images: [blog.image],
     },
     alternates: {
-      canonical: `https://himalyaneducation.com/blog/${blog.id}`,
+      canonical: `${SITE_IDENTITY.website}/blog/${blog.id}`,
     },
   };
 }

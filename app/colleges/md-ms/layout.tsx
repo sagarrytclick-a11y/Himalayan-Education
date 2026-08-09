@@ -1,26 +1,30 @@
 import type { Metadata } from "next";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
+import { buildPageMetadata, jsonLdScript } from "@/lib/seo";
 
-const pageUrl = `${SITE_IDENTITY.website}/colleges/md-ms`;
-
-export const metadata: Metadata = {
-  title: "MD MS in India 2025-26 | Colleges & NEET PG",
+export const metadata: Metadata = buildPageMetadata({
+  title: "MD MS in India 2026 | Colleges & NEET PG",
   description: `Explore MD & MS colleges in India for postgraduate medical education. Specializations, NEET PG cutoffs, and admission guidance by ${SITE_IDENTITY.name}.`,
-  alternates: { canonical: pageUrl },
-  openGraph: {
-    title: `MD MS in India 2025-26 | ${SITE_IDENTITY.name}`,
-    description:
-      "Find top MD & MS colleges in India. Browse specializations, NEET PG cutoffs, fees, and admission support.",
-    url: pageUrl,
-  },
-};
+  path: "/colleges/md-ms",
+  keywords: [
+    "MD MS colleges India",
+    "NEET PG counselling",
+    "postgraduate medical colleges",
+    SITE_IDENTITY.name,
+  ],
+});
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_IDENTITY.website },
-    { "@type": "ListItem", position: 2, name: "MD/MS", item: pageUrl },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "MD/MS",
+      item: `${SITE_IDENTITY.website}/colleges/md-ms`,
+    },
   ],
 };
 
@@ -33,9 +37,7 @@ export default function MdMsLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       {children}
     </>

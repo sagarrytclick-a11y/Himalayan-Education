@@ -1,11 +1,14 @@
 "use client";
+
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import ContactPopup from "./ContactPopup";
-import FloatingButton from "./FloatingButton";
-import WhatsAppButton from "./WhatsAppButton";
+
+const ContactPopup = dynamic(() => import("./ContactPopup"), { ssr: false });
+const FloatingButton = dynamic(() => import("./FloatingButton"), { ssr: false });
+const WhatsAppButton = dynamic(() => import("./WhatsAppButton"), { ssr: false });
 
 interface LayoutWrapperProps {
   children: ReactNode;

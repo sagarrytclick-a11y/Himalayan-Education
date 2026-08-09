@@ -1,26 +1,31 @@
 import type { Metadata } from "next";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
+import { buildPageMetadata, jsonLdScript } from "@/lib/seo";
 
-const pageUrl = `${SITE_IDENTITY.website}/colleges/mbbs-india`;
-
-export const metadata: Metadata = {
-  title: "MBBS in India 2025-26 | Colleges, Fees & NEET Cutoffs",
+export const metadata: Metadata = buildPageMetadata({
+  title: "MBBS in India 2026 | Colleges, Fees & NEET Cutoffs",
   description: `Explore top MBBS colleges in India. Government & private medical colleges, fees, NEET cutoffs, and admission counselling by ${SITE_IDENTITY.name}.`,
-  alternates: { canonical: pageUrl },
-  openGraph: {
-    title: `MBBS in India 2025-26 | ${SITE_IDENTITY.name}`,
-    description:
-      "Browse top Government & Private medical colleges in India. NEET cutoffs, fees, admission process, and expert counselling.",
-    url: pageUrl,
-  },
-};
+  path: "/colleges/mbbs-india",
+  keywords: [
+    "MBBS in India",
+    "MBBS colleges India",
+    "NEET cutoffs",
+    "government medical colleges",
+    SITE_IDENTITY.name,
+  ],
+});
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_IDENTITY.website },
-    { "@type": "ListItem", position: 2, name: "MBBS India", item: pageUrl },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "MBBS India",
+      item: `${SITE_IDENTITY.website}/colleges/mbbs-india`,
+    },
   ],
 };
 
@@ -33,9 +38,7 @@ export default function MbbsIndiaLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       {children}
     </>
