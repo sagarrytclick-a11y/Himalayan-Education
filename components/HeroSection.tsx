@@ -20,7 +20,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative overflow-hidden bg-background">
-      <div className="he-container relative z-10 grid items-center gap-8 py-4 lg:grid-cols-12 lg:gap-6 lg:py-5">
+      <div className="he-container relative z-10 grid items-center gap-8 py-10 sm:py-12 lg:grid-cols-12 lg:gap-10 lg:py-16 xl:py-20">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
