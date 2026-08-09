@@ -1,26 +1,32 @@
 import type { Metadata } from "next";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
+import { buildPageMetadata, jsonLdScript } from "@/lib/seo";
 
-const pageUrl = `${SITE_IDENTITY.website}/colleges/mbbs-abroad`;
-
-export const metadata: Metadata = {
-  title: "MBBS Abroad 2025-26 | Russia, Kyrgyzstan & More",
+export const metadata: Metadata = buildPageMetadata({
+  title: "MBBS Abroad 2026 | Russia, Kyrgyzstan, Kazakhstan & More",
   description: `Study MBBS abroad at medical universities in Russia, Kyrgyzstan, Kazakhstan, Nepal, Bangladesh & more. Affordable fees and admission guidance by ${SITE_IDENTITY.name}.`,
-  alternates: { canonical: pageUrl },
-  openGraph: {
-    title: `MBBS Abroad 2025-26 | ${SITE_IDENTITY.name}`,
-    description:
-      "Study MBBS abroad at NMC-aware universities. Russia, Kyrgyzstan, Kazakhstan, Nepal, Bangladesh — fees, visa & admission support.",
-    url: pageUrl,
-  },
-};
+  path: "/colleges/mbbs-abroad",
+  keywords: [
+    "MBBS abroad",
+    "MBBS in Russia",
+    "MBBS in Kyrgyzstan",
+    "MBBS in Kazakhstan",
+    "NMC approved universities",
+    SITE_IDENTITY.name,
+  ],
+});
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: SITE_IDENTITY.website },
-    { "@type": "ListItem", position: 2, name: "MBBS Abroad", item: pageUrl },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "MBBS Abroad",
+      item: `${SITE_IDENTITY.website}/colleges/mbbs-abroad`,
+    },
   ],
 };
 
@@ -33,9 +39,7 @@ export default function MbbsAbroadLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       {children}
     </>

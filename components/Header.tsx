@@ -88,6 +88,7 @@ function CollegeLinks({ list }: { list: NavCollege[] }) {
         <Link
           key={c.id}
           href={c.href}
+          prefetch={false}
           className="rounded-[12px] border border-border bg-white px-3.5 py-3 transition-colors hover:border-primary/25"
         >
           <p className="font-body text-sm font-bold text-text line-clamp-1">

@@ -1,28 +1,20 @@
 import type { Metadata } from "next";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
+import { buildPageMetadata, jsonLdScript } from "@/lib/seo";
 
 const pageUrl = `${SITE_IDENTITY.website}/contact`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Contact Us | Get Guidance for MBBS Admissions",
-  description: `Contact ${SITE_IDENTITY.name} to get guidance for MBBS admissions. Call ${SITE_IDENTITY.contact.phone.split(",")[0].trim()}, email ${SITE_IDENTITY.contact.email}, or visit our Noida office.`,
+  description: `Contact ${SITE_IDENTITY.name} for MBBS admission guidance. Call ${SITE_IDENTITY.contact.phone.split(",")[0].trim()}, email ${SITE_IDENTITY.contact.email}, or visit our Noida office.`,
+  path: "/contact",
   keywords: [
     `Contact ${SITE_IDENTITY.name}`,
     "MBBS counselling Noida",
     "NEET admission helpline",
     "MBBS admission guidance",
   ],
-  alternates: {
-    canonical: pageUrl,
-  },
-  openGraph: {
-    title: `Contact ${SITE_IDENTITY.name} | MBBS Admission Consultants`,
-    description:
-      "Reach out for expert MBBS admission counselling. Free guidance for medical admissions in India & abroad.",
-    url: pageUrl,
-    type: "website",
-  },
-};
+});
 
 const breadcrumbJsonLd = {
   "@context": "https://schema.org",
@@ -64,15 +56,11 @@ export default function ContactLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(contactJsonLd).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(contactJsonLd) }}
       />
       {children}
     </>

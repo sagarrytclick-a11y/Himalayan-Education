@@ -29,7 +29,7 @@
   --color-background: var(--background);
   --color-foreground: var(--text);
   --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-display: var(--font-body);
 
   --color-primary: #0f2042;
   --color-primary-hover: #0a1730;

@@ -5,13 +5,14 @@ import "../../globals.css";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Admin Panel - Himalayan Education",
   description: "Admin panel for managing MBBS admission enquiries",
-  viewport: "width=device-width, initial-scale=1",
+  robots: { index: false, follow: false },
 };
 
 export default function AdminLayout({

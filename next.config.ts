@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=()",
+  },
+];
+
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
@@ -9,16 +20,11 @@ const nextConfig: NextConfig = {
     formats: ["image/webp", "image/avif"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 7,
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "i.pinimg.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.cloudinary.com",
-      },
+      { protocol: "https", hostname: "i.pinimg.com" },
+      { protocol: "https", hostname: "**.cloudinary.com" },
+      { protocol: "https", hostname: "upload.wikimedia.org" },
     ],
   },
 
@@ -34,27 +40,43 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/_next/static/(.*)",
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+      {
+        source: "/_next/static/:path*",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       {
-        source: "/static/(.*)",
+        source: "/:path*\\.(png|jpg|jpeg|svg|ico|webp|avif|woff2)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
         ],
       },
       {
-        source: "/api/(.*)",
+        source: "/:path*\\.(json)",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=60, stale-while-revalidate=300" },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
         ],
       },
       {
-        source: "/(.*)\\.(json|png|jpg|jpeg|svg|ico|webp|avif|js|css|woff2?)$",
+        source: "/api/:path*",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+          {
+            key: "Cache-Control",
+            value: "private, no-store",
+          },
         ],
       },
     ];
@@ -64,6 +86,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/home",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/index",
         destination: "/",
         permanent: true,
       },

@@ -18,7 +18,9 @@ const BlogTeaser = dynamic(() => import("@/components/home/BlogTeaser"));
 const PopupModal = dynamic(() => import("@/components/PopupModal"));
 
 export const metadata: Metadata = {
-  title: `${SITE_IDENTITY.name} | MBBS Admission Counselling in Noida`,
+  title: {
+    absolute: `${SITE_IDENTITY.name} | MBBS Admission Counselling in Noida`,
+  },
   description: `${SITE_IDENTITY.name} offers clear counselling for MBBS in India & abroad, MD/MS pathways, and NEET guidance. Shortlist colleges, compare options, and plan your next step with clarity.`,
   alternates: {
     canonical: SITE_IDENTITY.website,
@@ -28,6 +30,22 @@ export const metadata: Metadata = {
     description:
       "Clear guidance from NEET to admission — India, abroad, and postgraduate pathways.",
     url: SITE_IDENTITY.website,
+    type: "website",
+    images: [
+      {
+        url: SITE_IDENTITY.logo.primary,
+        width: 1200,
+        height: 630,
+        alt: SITE_IDENTITY.name,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_IDENTITY.name} | MBBS Admission Counselling in Noida`,
+    description:
+      "Clear guidance from NEET to admission — India, abroad, and postgraduate pathways.",
+    images: [SITE_IDENTITY.logo.primary],
   },
 };
 
