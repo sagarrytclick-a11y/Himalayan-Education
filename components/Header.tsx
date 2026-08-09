@@ -487,7 +487,7 @@ export default function Header() {
             onMouseEnter={scheduleClose}
             className={`px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
               isActive("/") && !panel
-                ? "text-primary bg-primary/8"
+                ? "bg-primary text-white"
                 : "text-text/75 hover:text-primary hover:bg-primary/5"
             }`}
           >
@@ -511,7 +511,7 @@ export default function Header() {
                   }
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
                     open || isActive(item.href)
-                      ? "text-primary bg-primary/8"
+                      ? "bg-primary text-white"
                       : "text-text/75 hover:text-primary hover:bg-primary/5"
                   }`}
                 >
@@ -531,7 +531,7 @@ export default function Header() {
             onMouseEnter={scheduleClose}
             className={`px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
               isActive("/about")
-                ? "text-primary bg-primary/8"
+                ? "bg-primary text-white"
                 : "text-text/75 hover:text-primary hover:bg-primary/5"
             }`}
           >
@@ -623,7 +623,7 @@ export default function Header() {
               <Link
                 href="/"
                 className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
-                  isActive("/") ? "bg-primary/8 text-primary" : "text-text"
+                  isActive("/") ? "bg-primary text-white" : "text-text"
                 }`}
               >
                 Home
@@ -636,10 +636,20 @@ export default function Header() {
                     onClick={() =>
                       setMobileSection((v) => (v === item.key ? null : item.key))
                     }
-                    className="flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-[15px] font-bold text-text"
+                    className={`flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-[15px] font-bold ${
+                      isActive(item.href) || mobileSection === item.key
+                        ? "bg-primary text-white"
+                        : "text-text"
+                    }`}
                   >
                     <span className="inline-flex items-center gap-2">
-                      <item.icon className="h-4 w-4 text-accent-deep" />
+                      <item.icon
+                        className={`h-4 w-4 ${
+                          isActive(item.href) || mobileSection === item.key
+                            ? "text-white"
+                            : "text-accent-deep"
+                        }`}
+                      />
                       {item.label}
                     </span>
                     <ChevronDown
@@ -700,19 +710,25 @@ export default function Header() {
 
               <Link
                 href="/about"
-                className="block rounded-[12px] px-4 py-3 text-[15px] font-bold text-text"
+                className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
+                  isActive("/about") ? "bg-primary text-white" : "text-text"
+                }`}
               >
                 About
               </Link>
               <Link
                 href="/blog"
-                className="block rounded-[12px] px-4 py-3 text-[15px] font-bold text-text"
+                className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
+                  isActive("/blog") ? "bg-primary text-white" : "text-text"
+                }`}
               >
                 Blog
               </Link>
               <Link
                 href="/contact"
-                className="block rounded-[12px] px-4 py-3 text-[15px] font-bold text-text"
+                className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
+                  isActive("/contact") ? "bg-primary text-white" : "text-text"
+                }`}
               >
                 Contact
               </Link>

@@ -14,6 +14,7 @@ import { CollegeFilterBar } from "@/components/ui/CollegeFilterBar";
 import { CollegeMediaCard } from "@/components/ui/CollegeMediaCard";
 import { Pagination } from "@/components/ui/Pagination";
 import { CollegeGridSkeleton } from "@/components/ui/Skeleton";
+import { usePopup } from "@/contexts/PopupContext";
 
 function collegeSlug(name: string) {
   return name
@@ -51,6 +52,7 @@ interface MdMsData {
 }
 
 const MdMsPage: React.FC = () => {
+  const { openPopup } = usePopup();
   const [states, setStates] = useState<StateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedState, setSelectedState] = useState("");
@@ -132,8 +134,9 @@ const MdMsPage: React.FC = () => {
           { label: "Home", href: "/" },
           { label: "MD/MS" },
         ]}
-        image="/medical.png"
+        image="https://i.pinimg.com/736x/7c/cb/9f/7ccb9f3dc555f4784c8fb0d0d25eabc8.jpg"
         imageAlt="MD MS colleges in India"
+        nativeImage
       >
         <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg">
           <div className="rounded-[12px] border border-white/15 bg-white/5 p-3 sm:p-4 text-center">
@@ -168,16 +171,15 @@ const MdMsPage: React.FC = () => {
               <FaArrowRight className="text-xs" />
             </Button>
           </Link>
-          <a href="tel:+919354023968">
-            <Button
-              variant="secondary"
-              size="md"
-              className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30"
-            >
-              <FaHeadset className="text-xs" />
-              Speak to an Expert
-            </Button>
-          </a>
+          <Button
+            variant="secondary"
+            size="md"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30"
+            onClick={openPopup}
+          >
+            <FaHeadset className="text-xs" />
+            Speak to an Expert
+          </Button>
         </div>
       </PageHero>
 

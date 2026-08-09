@@ -15,6 +15,7 @@ import { CollegeFilterBar } from "@/components/ui/CollegeFilterBar";
 import { CollegeMediaCard } from "@/components/ui/CollegeMediaCard";
 import { Pagination } from "@/components/ui/Pagination";
 import { CollegeGridSkeleton } from "@/components/ui/Skeleton";
+import { usePopup } from "@/contexts/PopupContext";
 
 function collegeSlug(name: string) {
   return name
@@ -48,6 +49,7 @@ interface MbbsData {
 }
 
 const MbbsIndiaPage: React.FC = () => {
+  const { openPopup } = usePopup();
   const [states, setStates] = useState<StateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedState, setSelectedState] = useState("");
@@ -126,6 +128,7 @@ const MbbsIndiaPage: React.FC = () => {
         ]}
         image="https://i.pinimg.com/736x/20/b9/9e/20b99e9d8c89e14bc61214c2884b0aff.jpg"
         imageAlt="MBBS colleges in India"
+        nativeImage
       >
         <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg">
           <div className="rounded-[12px] border border-white/15 bg-white/5 p-3 sm:p-4 text-center">
@@ -160,12 +163,15 @@ const MbbsIndiaPage: React.FC = () => {
               <FaArrowRight className="text-xs" />
             </Button>
           </Link>
-          <a href="tel:+919354023968">
-            <Button variant="secondary" size="md" className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30">
-              <FaHeadset className="text-xs" />
-              Speak to an Expert
-            </Button>
-          </a>
+          <Button
+            variant="secondary"
+            size="md"
+            className="bg-white/10 text-white border-white/20 hover:bg-white/15 hover:border-white/30"
+            onClick={openPopup}
+          >
+            <FaHeadset className="text-xs" />
+            Speak to an Expert
+          </Button>
         </div>
       </PageHero>
 

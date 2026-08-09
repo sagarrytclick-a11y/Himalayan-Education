@@ -86,7 +86,10 @@ export const metadata: Metadata = {
     images: [SITE_IDENTITY.logo.primary],
   },
   icons: {
-    icon: [{ url: SITE_IDENTITY.logo.favicon, sizes: "any" }],
+    icon: [
+      { url: SITE_IDENTITY.logo.favicon, type: "image/png", sizes: "any" },
+      { url: "/favicon.ico", sizes: "64x64" },
+    ],
     shortcut: SITE_IDENTITY.logo.favicon,
     apple: SITE_IDENTITY.logo.favicon,
   },

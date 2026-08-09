@@ -14,7 +14,7 @@ export const SITE_IDENTITY = {
     full: "Unit 05, 16th Floor, Silver Tower, Wave One, Sector 18, Noida, U.P.",
   },
   contact: {
-    phone: "+91 83187 97449, 9971021699",
+    phone: "+91 83187 97449, 9717769336",
     email: "himalayanedunoida@gmail.com",
     googleMapsUrl: "",
   },
@@ -28,8 +28,8 @@ export const SITE_IDENTITY = {
     partnerColleges: "150+",
   },
   logo: {
-    primary: "/himalayan-logo.png",
-    favicon: "/favicon.ico",
+    primary: "/logo.png",
+    favicon: "/favicon.png",
   },
   social: {
     facebook: "https://facebook.com/himalyaneducation",

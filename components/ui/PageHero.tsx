@@ -22,6 +22,8 @@ interface PageHeroProps {
   imageSide?: "left" | "right";
   /** default = full media; sm = compact (e.g. country flag) */
   imageSize?: "default" | "sm";
+  /** Use native <img> (listing pages). Otherwise Next.js Image. */
+  nativeImage?: boolean;
 }
 
 export function PageHero({
@@ -36,6 +38,7 @@ export function PageHero({
   imageAlt = "",
   imageSide = "right",
   imageSize = "default",
+  nativeImage = false,
 }: PageHeroProps) {
   const isDark = surface === "primary";
   const alignCls = align === "center" ? "text-center items-center mx-auto" : "text-left items-start";
@@ -62,15 +65,26 @@ export function PageHero({
             : "aspect-[4/3] sm:aspect-[5/4]"
         }`}
       >
-        <Image
-          src={image}
-          alt={imageAlt || SITE_IDENTITY.name}
-          fill
-          unoptimized={image.startsWith("http")}
-          className="object-cover"
-          sizes={compact ? "320px" : "(max-width: 1024px) 100vw, 540px"}
-          priority
-        />
+        {nativeImage ? (
+          // eslint-disable-next-line @next/next/no-img-element -- listing pages use native img
+          <img
+            src={image}
+            alt={imageAlt || SITE_IDENTITY.name}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+          />
+        ) : (
+          <Image
+            src={image}
+            alt={imageAlt || SITE_IDENTITY.name}
+            fill
+            unoptimized={image.startsWith("http")}
+            className="object-cover"
+            sizes={compact ? "320px" : "(max-width: 1024px) 100vw, 540px"}
+            priority
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0F2042]/35 via-transparent to-transparent" />
       </div>
     </div>
