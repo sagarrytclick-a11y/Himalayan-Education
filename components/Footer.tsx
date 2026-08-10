@@ -25,11 +25,11 @@ const explore = [
 const destinations = [
   { name: "Russia", href: "/country/russia" },
   { name: "Kazakhstan", href: "/country/kazakhstan" },
-  { name: "Kyrgyzstan", href: "/country/kyrgyzstan" },
   { name: "Uzbekistan", href: "/country/uzbekistan" },
   { name: "Georgia", href: "/country/georgia" },
   { name: "Nepal", href: "/country/nepal" },
   { name: "Bangladesh", href: "/country/bangladesh" },
+  {name: "Tajikistan" , href: "/country/tajikistan"}
 ];
 
 const resources = [
