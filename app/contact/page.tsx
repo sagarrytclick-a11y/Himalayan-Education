@@ -30,6 +30,7 @@ const ContactPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [website, setWebsite] = useState(""); // honeypot — leave empty
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -74,6 +75,7 @@ const ContactPage: React.FC = () => {
         mobile: formData.phone,
         courseInterest: formData.service,
         neetScore: formData.neetScore,
+        website,
       };
       const response = await fetch("/api/send-email", {
         method: "POST",
@@ -236,6 +238,21 @@ const ContactPage: React.FC = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+                  <div
+                    aria-hidden="true"
+                    className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+                  >
+                    <label htmlFor="contact-website">Website</label>
+                    <input
+                      id="contact-website"
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                    />
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="mb-1.5 block font-body text-sm font-semibold text-text">

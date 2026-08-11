@@ -1,30 +1,38 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export const ADMIN_SESSION_COOKIE = "admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
+function requireEnv(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(
+      `${name} is not configured. Set it in your environment before using admin auth.`
+    );
+  }
+  return value;
+}
+
 function getSessionSecret(): string {
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    process.env.NEXT_PUBLIC_ADMIN_PASSWORD ||
-    "himalayan-admin-dev-secret"
-  );
+  // Never fall back to password or public env vars.
+  return requireEnv("ADMIN_SESSION_SECRET");
 }
 
 export function getAdminCredentials() {
   return {
-    username:
-      process.env.ADMIN_USERNAME ||
-      process.env.NEXT_PUBLIC_ADMIN_USERNAME ||
-      "admin",
-    password:
-      process.env.ADMIN_PASSWORD ||
-      process.env.NEXT_PUBLIC_ADMIN_PASSWORD ||
-      "admin123",
+    username: requireEnv("ADMIN_USERNAME"),
+    password: requireEnv("ADMIN_PASSWORD"),
   };
+}
+
+export function isAdminAuthConfigured(): boolean {
+  return Boolean(
+    process.env.ADMIN_USERNAME?.trim() &&
+      process.env.ADMIN_PASSWORD?.trim() &&
+      process.env.ADMIN_SESSION_SECRET?.trim()
+  );
 }
 
 function sign(payload: string): string {
@@ -33,7 +41,8 @@ function sign(payload: string): string {
 
 export function createAdminSessionToken(username: string): string {
   const exp = Date.now() + SESSION_TTL_MS;
-  const payload = `${username}.${exp}`;
+  const nonce = randomBytes(8).toString("base64url");
+  const payload = `${username}.${exp}.${nonce}`;
   return `${payload}.${sign(payload)}`;
 }
 
@@ -41,14 +50,22 @@ export function verifyAdminSessionToken(token: string | undefined | null): {
   valid: boolean;
   username?: string;
 } {
-  if (!token) return { valid: false };
+  if (!token || !isAdminAuthConfigured()) return { valid: false };
 
   const parts = token.split(".");
-  if (parts.length !== 3) return { valid: false };
+  // username.exp.nonce.signature
+  if (parts.length !== 4) return { valid: false };
 
-  const [username, expStr, signature] = parts;
-  const payload = `${username}.${expStr}`;
-  const expected = sign(payload);
+  const [username, expStr, nonce, signature] = parts;
+  if (!username || !expStr || !nonce || !signature) return { valid: false };
+
+  const payload = `${username}.${expStr}.${nonce}`;
+  let expected: string;
+  try {
+    expected = sign(payload);
+  } catch {
+    return { valid: false };
+  }
 
   try {
     const a = Buffer.from(signature);

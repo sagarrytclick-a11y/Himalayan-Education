@@ -5,4 +5,5 @@ FROM_EMAIL=
 MONGODB_URI=
 ADMIN_USERNAME=
 ADMIN_PASSWORD=
+# Use a long random value (32+ chars). Never reuse the password.
 ADMIN_SESSION_SECRET=

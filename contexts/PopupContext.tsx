@@ -67,7 +67,7 @@ export const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, website: "" }),
       });
 
       const result = await response.json();

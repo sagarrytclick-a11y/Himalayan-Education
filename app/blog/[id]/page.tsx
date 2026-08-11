@@ -168,24 +168,12 @@ const BlogPostPage: React.FC = () => {
               <div className="p-6 md:p-10">
                 <div
                   className="
-                    prose
-                    prose-sm
-                    md:prose-lg
-                    max-w-none
-                    font-body
-                    prose-headings:font-display
-                    prose-headings:text-primary
-                    prose-headings:font-extrabold
-                    prose-p:text-muted
-                    prose-p:leading-relaxed
-                    prose-strong:text-primary
-                    prose-a:text-secondary
-                    prose-img:rounded-[16px]
+                    font-body text-muted text-base md:text-lg leading-relaxed
+                    whitespace-pre-line
                   "
-                  dangerouslySetInnerHTML={{
-                    __html: blog.content.replace(/\n/g, "<br />"),
-                  }}
-                />
+                >
+                  {blog.content}
+                </div>
               </div>
             )}
 

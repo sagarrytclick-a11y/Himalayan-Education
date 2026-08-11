@@ -23,6 +23,7 @@ const ContactPopup: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [website, setWebsite] = useState(""); // honeypot — leave empty
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
@@ -75,6 +76,7 @@ const ContactPopup: React.FC = () => {
           neetScore: formData.neetScore.trim()
             ? String(Number(formData.neetScore))
             : "",
+          website,
         }),
       });
 
@@ -153,6 +155,21 @@ const ContactPopup: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} noValidate className="space-y-3.5 p-5">
+          <div
+            aria-hidden="true"
+            className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
+          >
+            <label htmlFor="popup-website">Website</label>
+            <input
+              id="popup-website"
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
+          </div>
           {submitStatus === "success" && (
             <div className="rounded-[12px] border border-success/25 bg-success/10 px-3.5 py-2.5 font-body text-sm text-success">
               Submitted successfully.

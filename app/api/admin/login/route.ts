@@ -4,31 +4,35 @@ import {
   ADMIN_SESSION_COOKIE,
   createAdminSessionToken,
   getAdminCredentials,
+  isAdminAuthConfigured,
   sessionCookieOptions,
 } from "@/lib/adminAuth";
+import { getClientIp } from "@/lib/security";
 
-const attempts = new Map<string, { count: number; lockedUntil: number }>();
 const MAX_ATTEMPTS = 5;
 const LOCK_MS = 1000 * 60 * 10; // 10 minutes
+const attempts = new Map<string, { count: number; lockedUntil: number }>();
 
 function safeEqual(a: string, b: string) {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
+  if (bufA.length !== bufB.length) {
+    timingSafeEqual(bufA, bufA);
+    return false;
+  }
   return timingSafeEqual(bufA, bufB);
-}
-
-function getClientKey(request: NextRequest) {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const clientKey = getClientKey(request);
+    if (!isAdminAuthConfigured()) {
+      return NextResponse.json(
+        { error: "Admin authentication is not configured." },
+        { status: 503 }
+      );
+    }
+
+    const clientKey = getClientIp(request);
     const record = attempts.get(clientKey);
     const now = Date.now();
 
@@ -36,13 +40,20 @@ export async function POST(request: NextRequest) {
       const minutes = Math.ceil((record.lockedUntil - now) / 60000);
       return NextResponse.json(
         { error: `Too many failed attempts. Try again in ${minutes} min.` },
-        { status: 429 }
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((record.lockedUntil - now) / 1000)),
+          },
+        }
       );
     }
 
-    const body = await request.json();
-    const username = String(body.username || "").trim();
-    const password = String(body.password || "");
+    const body = await request.json().catch(() => null);
+    const username = String(body?.username || "")
+      .trim()
+      .slice(0, 64);
+    const password = String(body?.password || "").slice(0, 128);
 
     if (!username || !password) {
       return NextResponse.json(
@@ -51,7 +62,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const creds = getAdminCredentials();
+    let creds: { username: string; password: string };
+    try {
+      creds = getAdminCredentials();
+    } catch {
+      return NextResponse.json(
+        { error: "Admin authentication is not configured." },
+        { status: 503 }
+      );
+    }
+
     const valid =
       safeEqual(username, creds.username) && safeEqual(password, creds.password);
 
@@ -59,7 +79,10 @@ export async function POST(request: NextRequest) {
       const prev = attempts.get(clientKey) || { count: 0, lockedUntil: 0 };
       const count = prev.count + 1;
       const lockedUntil = count >= MAX_ATTEMPTS ? now + LOCK_MS : 0;
-      attempts.set(clientKey, { count: lockedUntil ? 0 : count, lockedUntil });
+      attempts.set(clientKey, {
+        count: lockedUntil ? 0 : count,
+        lockedUntil,
+      });
 
       return NextResponse.json(
         { error: "Invalid username or password" },
@@ -78,7 +101,10 @@ export async function POST(request: NextRequest) {
     response.cookies.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions());
     return response;
   } catch (error) {
-    console.error("Admin login error:", error);
+    console.error(
+      "Admin login error:",
+      error instanceof Error ? error.message : "unknown"
+    );
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
 }
