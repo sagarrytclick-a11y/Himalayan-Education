@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Menu,
@@ -13,7 +13,13 @@ import {
   Stethoscope,
   MapPin,
   Search,
+  BookOpen,
+  Activity,
+  Phone,
+  Mail,
+  Sparkles,
 } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaYoutube } from "react-icons/fa";
 import Logo from "./Logo";
 import { Button } from "./ui/Button";
 import { usePopup } from "../contexts/PopupContext";
@@ -27,7 +33,7 @@ import {
 } from "@/lib/nav-mega-data";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
 
-type PanelKey = "india" | "abroad" | "mdms" | null;
+type PanelKey = "india" | "abroad" | "mdms" | "resources" | null;
 
 const pathways: {
   key: Exclude<PanelKey, null>;
@@ -419,6 +425,83 @@ function MdMsPanel() {
   );
 }
 
+const resourceLinks = [
+  {
+    href: "/neet-rank-predictor",
+    title: "NEET Rank Predictor",
+    desc: "Estimate AIR from your score and category.",
+    icon: Activity,
+    badge: "NEW",
+  },
+  {
+    href: "/blog",
+    title: "Latest Updates",
+    desc: "Counselling notes, cutoffs, and admission guides.",
+    icon: BookOpen,
+  },
+  {
+    href: "/about",
+    title: "About us",
+    desc: "How we counsel students and parents.",
+    icon: GraduationCap,
+  },
+  {
+    href: "/contact",
+    title: "Contact",
+    desc: "Talk to a counsellor in Noida.",
+    icon: MapPin,
+  },
+];
+
+function ResourcesPanel() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {resourceLinks.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="group rounded-[16px] border border-border bg-white p-5 transition-colors hover:border-primary/25 hover:bg-surface"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <Icon className="h-5 w-5 text-accent-deep" />
+              {item.badge && (
+                <span className="rounded-full bg-accent px-2 py-0.5 font-body text-[10px] font-extrabold text-primary">
+                  {item.badge}
+                </span>
+              )}
+            </div>
+            <p className="mt-3 font-display text-base font-extrabold text-primary">
+              {item.title}
+            </p>
+            <p className="mt-1.5 font-body text-xs leading-relaxed text-muted">
+              {item.desc}
+            </p>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function useAnnounceOpen() {
+  return useSyncExternalStore(
+    (onChange) => {
+      window.addEventListener("he-announce", onChange);
+      return () => window.removeEventListener("he-announce", onChange);
+    },
+    () => {
+      try {
+        return sessionStorage.getItem("he-announce-dismissed") !== "1";
+      } catch {
+        return true;
+      }
+    },
+    () => true
+  );
+}
+
 export default function Header() {
   const { openPopup } = usePopup();
   const pathname = usePathname();
@@ -426,8 +509,29 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [panel, setPanel] = useState<PanelKey>(null);
   const [mobileSection, setMobileSection] = useState<PanelKey>(null);
+  const [routeKey, setRouteKey] = useState(pathname);
+  const showAnnounce = useAnnounceOpen();
   const rootRef = useRef<HTMLElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const phonePrimary = SITE_IDENTITY.contact.phone.split(",")[0].trim();
+  const phoneTel = phonePrimary.replace(/[^0-9+]/g, "");
+
+  if (pathname !== routeKey) {
+    setRouteKey(pathname);
+    setMobileOpen(false);
+    setPanel(null);
+    setMobileSection(null);
+  }
+
+  const dismissAnnounce = () => {
+    try {
+      sessionStorage.setItem("he-announce-dismissed", "1");
+    } catch {
+      /* ignore */
+    }
+    window.dispatchEvent(new Event("he-announce"));
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -435,12 +539,6 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    setMobileOpen(false);
-    setPanel(null);
-    setMobileSection(null);
-  }, [pathname]);
 
   useEffect(() => {
     if (!panel) return;
@@ -471,22 +569,114 @@ export default function Header() {
   return (
     <header
       ref={rootRef}
-      className={`relative sticky top-0 z-50 w-full font-body transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full font-body transition-all duration-300 ${
         scrolled || panel
           ? "bg-white border-b border-border shadow-[0_4px_20px_rgba(15,32,66,0.06)]"
           : "bg-white/95 border-b border-transparent"
       }`}
     >
-      <div className="he-container h-[72px] flex items-center justify-between gap-3">
-        <Link href="/" className="shrink-0" aria-label={`${SITE_IDENTITY.name} home`}>
-          <Logo className="h-10 w-10 sm:h-11 sm:w-11 object-contain" />
+      {showAnnounce && (
+        <div className="relative bg-[#0a1224] text-white">
+          <div className="mx-auto flex max-w-[1360px] items-center justify-center gap-2 px-10 py-2 sm:gap-3 sm:px-12">
+            <p className="min-w-0 truncate text-center font-body text-[11px] font-semibold text-white/90 sm:text-[13px]">
+              <Sparkles className="mr-1.5 inline h-3.5 w-3.5 text-accent" />
+              <span className="font-extrabold text-accent">NEW:</span> College
+              Predictor 2026 — know which colleges match your NEET rank in
+              seconds
+            </p>
+            <Link
+              href="/neet-rank-predictor"
+              className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1 font-body text-[11px] font-extrabold text-primary sm:inline-flex"
+            >
+              Try now
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={dismissAnnounce}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-white/70 hover:bg-white/10 hover:text-white"
+            aria-label="Dismiss announcement"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
+      <div className="hidden border-b border-border bg-white sm:block">
+        <div className="mx-auto flex h-11 max-w-[1360px] items-center justify-between gap-3 px-4 xl:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <a
+              href={`tel:${phoneTel}`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 font-body text-[12px] font-bold text-white"
+            >
+              <Phone className="h-3 w-3" />
+              {phonePrimary}
+            </a>
+            <a
+              href={`mailto:${SITE_IDENTITY.contact.email}`}
+              className="inline-flex max-w-[280px] items-center gap-1.5 truncate rounded-full bg-accent px-3 py-1 font-body text-[12px] font-bold text-primary"
+            >
+              <Mail className="h-3 w-3 shrink-0" />
+              <span className="truncate">{SITE_IDENTITY.contact.email}</span>
+            </a>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {[
+              {
+                href: SITE_IDENTITY.social.facebook,
+                label: "Facebook",
+                Icon: FaFacebookF,
+                className: "bg-[#1877F2] text-white",
+              },
+              {
+                href: SITE_IDENTITY.social.instagram,
+                label: "Instagram",
+                Icon: FaInstagram,
+                className: "bg-linear-to-tr from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white",
+              },
+              {
+                href: SITE_IDENTITY.social.youtube,
+                label: "YouTube",
+                Icon: FaYoutube,
+                className: "bg-[#FF0000] text-white",
+              },
+            ].map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={item.label}
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-[11px] ${item.className}`}
+              >
+                <item.Icon />
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto flex h-16 w-full max-w-[1360px] items-center gap-3 px-4 xl:h-[72px] xl:px-6">
+        <Link
+          href="/"
+          className="flex min-w-0 shrink-0 items-center gap-2.5"
+          aria-label={`${SITE_IDENTITY.name} home`}
+        >
+          <Logo
+            showText={false}
+            className="h-9 w-9 object-contain xl:h-10 xl:w-10"
+          />
+          <span className="hidden font-display text-[15px] font-bold tracking-tight text-primary xl:inline">
+            {SITE_IDENTITY.shortName}
+          </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden min-[1180px]:flex flex-1 items-center justify-center gap-0.5">
           <Link
             href="/"
             onMouseEnter={scheduleClose}
-            className={`px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
+            className={`px-2.5 py-1.5 rounded-[10px] text-[13px] font-bold whitespace-nowrap transition-colors ${
               isActive("/") && !panel
                 ? "bg-primary text-white"
                 : "text-text/75 hover:text-primary hover:bg-primary/5"
@@ -510,7 +700,7 @@ export default function Header() {
                   onClick={() =>
                     setPanel((v) => (v === item.key ? null : item.key))
                   }
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[13px] font-bold whitespace-nowrap transition-colors ${
                     open || isActive(item.href)
                       ? "bg-primary text-white"
                       : "text-text/75 hover:text-primary hover:bg-primary/5"
@@ -527,28 +717,56 @@ export default function Header() {
             );
           })}
 
-          <Link
-            href="/about"
-            onMouseEnter={scheduleClose}
-            className={`px-3.5 py-2 rounded-[10px] text-sm font-bold transition-colors ${
-              isActive("/about")
-                ? "bg-primary text-white"
-                : "text-text/75 hover:text-primary hover:bg-primary/5"
-            }`}
+          <div
+            className="relative"
+            onMouseEnter={() => openPanel("resources")}
+            onMouseLeave={scheduleClose}
           >
-            About
-          </Link>
+            <button
+              type="button"
+              aria-expanded={panel === "resources"}
+              onClick={() =>
+                setPanel((v) => (v === "resources" ? null : "resources"))
+              }
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-[10px] text-[13px] font-bold whitespace-nowrap transition-colors ${
+                panel === "resources" ||
+                isActive("/blog") ||
+                isActive("/about") ||
+                isActive("/contact")
+                  ? "bg-accent/20 text-primary"
+                  : "text-text/75 hover:text-primary hover:bg-primary/5"
+              }`}
+            >
+              Updates
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                  panel === "resources" ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
         </nav>
 
-        <div className="hidden lg:flex items-center gap-3">
-          <Button onClick={openPopup} size="md">
+        <div className="hidden min-[1180px]:flex ml-auto shrink-0 items-center gap-2">
+          <Link
+            href="/neet-rank-predictor"
+            onMouseEnter={scheduleClose}
+            className="relative inline-flex h-9 items-center gap-1.5 rounded-[10px] bg-[#0F766E] px-3 font-body text-[13px] font-bold text-white transition-transform hover:-translate-y-0.5"
+          >
+            <Activity className="h-3.5 w-3.5" />
+            NEET Predictor
+            <span className="rounded-full bg-accent px-1.5 py-px font-body text-[9px] font-extrabold text-primary">
+              NEW
+            </span>
+          </Link>
+          <Button onClick={openPopup} size="sm">
             Get Guidance
           </Button>
         </div>
 
         <button
           type="button"
-          className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-border text-text"
+          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-border text-text min-[1180px]:hidden"
           onClick={() => {
             setPanel(null);
             setMobileOpen((v) => !v);
@@ -568,7 +786,7 @@ export default function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
-            className="absolute left-0 right-0 top-full z-[60] hidden lg:block"
+            className="absolute left-0 right-0 top-full z-[60] hidden min-[1180px]:block"
             onMouseEnter={cancelClose}
             onMouseLeave={scheduleClose}
           >
@@ -583,7 +801,9 @@ export default function Header() {
                         ? "MBBS India"
                         : panel === "abroad"
                           ? "MBBS Abroad"
-                          : "MD / MS"}
+                          : panel === "mdms"
+                            ? "MD / MS"
+                            : "Guidance"}
                     </p>
                   </div>
                   <Link
@@ -592,7 +812,9 @@ export default function Header() {
                         ? "/colleges/mbbs-india"
                         : panel === "abroad"
                           ? "/colleges/mbbs-abroad"
-                          : "/colleges/md-ms"
+                          : panel === "mdms"
+                            ? "/colleges/md-ms"
+                            : "/neet-rank-predictor"
                     }
                     className="inline-flex items-center gap-1.5 font-body text-sm font-bold text-primary hover:text-secondary"
                     onClick={() => setPanel(null)}
@@ -604,6 +826,7 @@ export default function Header() {
                 {panel === "india" && <IndiaPanel />}
                 {panel === "abroad" && <AbroadPanel />}
                 {panel === "mdms" && <MdMsPanel />}
+                {panel === "resources" && <ResourcesPanel />}
               </div>
             </div>
           </motion.div>
@@ -618,7 +841,7 @@ export default function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="lg:hidden overflow-hidden border-t border-border bg-white max-h-[80vh] overflow-y-auto"
+            className="min-[1180px]:hidden overflow-hidden border-t border-border bg-white max-h-[80vh] overflow-y-auto"
           >
             <div className="he-container py-4 space-y-1">
               <Link
@@ -709,29 +932,59 @@ export default function Header() {
                 </div>
               ))}
 
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((v) => (v === "resources" ? null : "resources"))
+                  }
+                  className={`flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-[15px] font-bold ${
+                    mobileSection === "resources" ||
+                    isActive("/blog") ||
+                    isActive("/about") ||
+                    isActive("/contact")
+                      ? "bg-accent/20 text-primary"
+                      : "text-text"
+                  }`}
+                >
+                  Latest Updates
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      mobileSection === "resources" ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {mobileSection === "resources" && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-1 pb-2 pl-4"
+                    >
+                      {resourceLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="block rounded-[10px] px-4 py-2 text-sm font-semibold text-muted"
+                        >
+                          {item.title}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <Link
-                href="/about"
+                href="/neet-rank-predictor"
                 className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
-                  isActive("/about") ? "bg-primary text-white" : "text-text"
+                  isActive("/neet-rank-predictor")
+                    ? "bg-primary text-white"
+                    : "text-text"
                 }`}
               >
-                About
-              </Link>
-              <Link
-                href="/blog"
-                className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
-                  isActive("/blog") ? "bg-primary text-white" : "text-text"
-                }`}
-              >
-                Blog
-              </Link>
-              <Link
-                href="/contact"
-                className={`block rounded-[12px] px-4 py-3 text-[15px] font-bold ${
-                  isActive("/contact") ? "bg-primary text-white" : "text-text"
-                }`}
-              >
-                Contact
+                NEET Predictor
               </Link>
 
               <div className="pt-3">

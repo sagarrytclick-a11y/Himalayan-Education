@@ -15,7 +15,6 @@ const FeaturedColleges = dynamic(() => import("@/components/home/FeaturedCollege
 const DestinationsSection = dynamic(() => import("@/components/home/DestinationsSection"));
 const TestimonialsSection = dynamic(() => import("@/components/TestimonialSection"));
 const BlogTeaser = dynamic(() => import("@/components/home/BlogTeaser"));
-const PopupModal = dynamic(() => import("@/components/PopupModal"));
 
 export const metadata: Metadata = {
   title: {
@@ -126,7 +125,6 @@ export default function Home() {
         <CTASection />
         <FAQPreview />
       </div>
-      <PopupModal />
     </div>
   );
 }
