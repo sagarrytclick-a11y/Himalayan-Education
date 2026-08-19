@@ -171,6 +171,7 @@ const HeroSection = () => {
             alt={slide.imageAlt}
             fill
             priority
+            unoptimized
             sizes="(max-width: 1024px) 90vw, 42vw"
             className="object-cover object-[center_20%]"
           />
@@ -182,6 +183,7 @@ const HeroSection = () => {
             alt={slide.imageAlt}
             fill
             priority
+            unoptimized
             sizes="(max-width: 1024px) 0px, 42vw"
             className="object-cover object-[center_18%] [mask-image:linear-gradient(to_right,black_72%,transparent)]"
           />
