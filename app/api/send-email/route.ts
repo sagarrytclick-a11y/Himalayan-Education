@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import connectDB from "@/lib/mongodb";
 import Enquiry from "@/models/Enquiry";
 import { SITE_IDENTITY } from "@/app/config/site_identity";
@@ -17,10 +17,26 @@ const MAX_COURSE = 120;
 const MAX_NEET = 10;
 const MAX_BODY_BYTES = 8_192;
 
-function getResend() {
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return null;
-  return new Resend(key);
+function getMailer() {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const password = process.env.SMTP_PASSWORD?.trim();
+  const port = Number(process.env.SMTP_PORT || 465);
+
+  if (!host || !user || !password || !Number.isInteger(port) || port < 1 || port > 65535) {
+    return null;
+  }
+
+  const secure = process.env.SMTP_SECURE
+    ? process.env.SMTP_SECURE.trim().toLowerCase() === "true"
+    : port === 465;
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass: password },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -155,8 +171,8 @@ export async function POST(request: NextRequest) {
     });
     await enquiry.save();
 
-    const resend = getResend();
-    if (resend) {
+    const mailer = getMailer();
+    if (mailer) {
       const safeName = escapeHtml(name);
       const safeEmail = escapeHtml(email);
       const safeMobile = mobile ? escapeHtml(mobile) : "";
@@ -289,29 +305,29 @@ export async function POST(request: NextRequest) {
       const subjectName = name.slice(0, 60);
       const subjectCourse = courseInterest.slice(0, 60);
 
-      const adminResult = await resend.emails.send({
-        from: fromEmail,
-        to: [adminEmail],
-        subject: `New Admission Inquiry: ${subjectName} - ${subjectCourse}`,
-        html: emailContent,
-      });
-
-      if (adminResult.error) {
-        console.error("Admin email failed:", adminResult.error.name);
+      try {
+        await mailer.sendMail({
+          from: fromEmail,
+          to: adminEmail,
+          subject: `New Admission Inquiry: ${subjectName} - ${subjectCourse}`,
+          html: emailContent,
+        });
+      } catch (error) {
+        console.error("Admin email failed:", error instanceof Error ? error.message : "unknown");
       }
 
-      const studentResult = await resend.emails.send({
-        from: fromEmail,
-        to: [email],
-        subject: "Your MBBS Admission Inquiry - Himalayan Education",
-        html: confirmationContent,
-      });
-
-      if (studentResult.error) {
-        console.error("Student email failed:", studentResult.error.name);
+      try {
+        await mailer.sendMail({
+          from: fromEmail,
+          to: email,
+          subject: "Your MBBS Admission Inquiry - Himalayan Education",
+          html: confirmationContent,
+        });
+      } catch (error) {
+        console.error("Student email failed:", error instanceof Error ? error.message : "unknown");
       }
     } else {
-      console.error("RESEND_API_KEY missing — enquiry saved, email skipped");
+      console.error("SMTP configuration missing or invalid — enquiry saved, email skipped");
     }
 
     return NextResponse.json(
