@@ -17,6 +17,17 @@ const MAX_COURSE = 120;
 const MAX_NEET = 10;
 const MAX_BODY_BYTES = 8_192;
 
+function parseEmailList(value?: string) {
+  return [
+    ...new Set(
+      (value || "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ];
+}
+
 function getMailer() {
   const host = process.env.SMTP_HOST?.trim();
   const user = process.env.SMTP_USER?.trim();
@@ -65,7 +76,9 @@ export async function POST(request: NextRequest) {
 
     // Honeypot — bots fill hidden fields; humans leave empty
     const honeypot = sanitizePlainText(
-      (body as { website?: string; company?: string }).website ??
+      (body as { departmentCode?: string; website?: string; company?: string })
+        .departmentCode ||
+        (body as { website?: string; company?: string }).website ||
         (body as { company?: string }).company,
       100
     );
@@ -151,9 +164,16 @@ export async function POST(request: NextRequest) {
       neetScore = String(score);
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL?.trim();
+    const adminEmails = parseEmailList(process.env.ADMIN_EMAIL);
+    const ccEmails = parseEmailList(process.env.CC_EMAIL).filter(
+      (email) => isValidEmail(email) && !adminEmails.includes(email)
+    );
     const fromEmail = process.env.FROM_EMAIL?.trim();
-    if (!adminEmail || !fromEmail) {
+    if (
+      !adminEmails.length ||
+      adminEmails.some((email) => !isValidEmail(email)) ||
+      !fromEmail
+    ) {
       return NextResponse.json(
         { error: "Enquiry service is temporarily unavailable." },
         { status: 503 }
@@ -308,7 +328,8 @@ export async function POST(request: NextRequest) {
       try {
         await mailer.sendMail({
           from: fromEmail,
-          to: adminEmail,
+          to: adminEmails,
+          ...(ccEmails.length > 0 ? { cc: ccEmails } : {}),
           subject: `New Admission Inquiry: ${subjectName} - ${subjectCourse}`,
           html: emailContent,
         });
